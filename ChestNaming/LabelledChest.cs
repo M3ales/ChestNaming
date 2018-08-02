@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using StardewValley;
 using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
@@ -13,27 +14,35 @@ namespace ChestNaming
         public int TileX
         {
             get;
-            private set;
+            set;
         }
         public int TileY
         {
             get;
-            private set;
+            set;
         }
         public string ChestName
         {
             get;
-            private set;
+            set;
         }
-        public LabelledChest(int tileX, int tileY, string chestName)
+        public string GameLocation
+        {
+            get;
+            set;
+        }
+
+        public LabelledChest(int tileX, int tileY, string chestName, string gameLocation)
         {
             TileX = tileX;
             TileY = tileY;
             ChestName = chestName;
+            GameLocation = gameLocation;
         }
+
         public bool EqualsChest(Chest chest)
         {
-            return chest != null && chest.boundingBox.X == TileX && chest.boundingBox.Y == TileY;
+            return chest != null && chest.boundingBox.X == TileX && chest.boundingBox.Y == TileY && GameLocation == Game1.player.currentLocation.Name;
         }
     }
 }

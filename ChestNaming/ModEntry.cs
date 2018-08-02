@@ -31,6 +31,8 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Objects;
 using Microsoft.Xna.Framework;
+using StardewValley.Menus;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace ChestNaming
 {
@@ -43,16 +45,51 @@ namespace ChestNaming
             LabelledChests = new List<LabelledChest>();
             ChestLabel = new HoverText(0, 0, Color.White);
             GameEvents.QuarterSecondTick += GameEvents_QuarterSecondTick;
-            GraphicsEvents.OnPostRenderEvent += GraphicsEvents_OnPostRenderEvent;
+            GraphicsEvents.OnPreRenderHudEvent += GraphicsEvents_OnPostRenderEvent;
+            InputEvents.ButtonPressed += InputEvents_ButtonPressed;
+            config = Helper.ReadConfig<ModConfig>();
+            if (config == null)
+            {
+                config = new ModConfig();
+                Helper.WriteConfig(config);
+            }
         }
-        #region Serialization
+        private ModConfig config;
+        private void InputEvents_ButtonPressed(object sender, EventArgsInput e)
+        {
+            if (e.Button.TryGetStardewInput(out InputButton b))
+            {
+                if (b.key == config.RenameChestKey && Game1.activeClickableMenu == null)
+                {
+                    if (selectedLabelledChest != null || selectedChest != null)
+                    {
+                        string def = selectedLabelledChest == null ? "Chest" : selectedLabelledChest.ChestName;
+                        Game1.activeClickableMenu = new NamingMenu(ChangeNameExit, "Name Chest", def);
+                    }
+                }
+            }
+        }
         private void SaveData(object sender, EventArgs e)
         {
             Monitor.Log("Saving to " + ChestNameSavePath);
             Helper.WriteJsonFile(ChestNameSavePath, LabelledChests);
             Monitor.Log("Complete");
         }
-
+        private void ChangeNameExit(string s)
+        {
+            if (selectedLabelledChest != null)
+                selectedLabelledChest.ChestName = s;
+            else
+            {
+                if (selectedChest != null)
+                {
+                    selectedLabelledChest = new LabelledChest(selectedChest.boundingBox.X, selectedChest.boundingBox.Y, s, Game1.player.currentLocation.Name);
+                    LabelledChests.Add(selectedLabelledChest);
+                }
+            }
+            Game1.exitActiveMenu();
+            SaveData(null, null);
+        }
         private void LoadData(object sender, EventArgs e)
         {
             Monitor.Log("Attempting to load " + ChestNameSavePath);
@@ -77,24 +114,26 @@ namespace ChestNaming
         {
             return $"{Constants.CurrentSavePath}\\{Constants.SaveFolderName}_{ModManifest.UniqueID}_{name}.json";
         }
-        #endregion
 
         private Chest selectedChest;
         private LabelledChest selectedLabelledChest;
         private bool firstTick = true;
         private void GameEvents_QuarterSecondTick(object sender, EventArgs e)
         {
-            if (CheckForLabelledChest((int)Game1.currentCursorTile.X, (int)Game1.currentCursorTile.Y, out selectedChest, out selectedLabelledChest))
+            if (!(Game1.activeClickableMenu is NamingMenu))
             {
-                if (firstTick)
+                if (CheckForLabelledChest((int)Game1.currentCursorTile.X, (int)Game1.currentCursorTile.Y, out selectedChest, out selectedLabelledChest))
                 {
-                    Monitor.Log("Chest under mouse.");
-                    firstTick = false;
+                    if (firstTick)
+                    {
+                        Monitor.Log("Chest under mouse.");
+                        firstTick = false;
+                    }
                 }
-            }
-            else
-            {
-                firstTick = true;
+                else
+                {
+                    firstTick = true;
+                }
             }
         }
 
@@ -121,6 +160,7 @@ namespace ChestNaming
                                 return true;
                             }
                         }
+                        return true;
                     }
                     chest = null;
                 }
@@ -140,11 +180,11 @@ namespace ChestNaming
         {
             if (selectedLabelledChest != null)
             {
-                int offset = selectedChest.boundingBox.Height - 10;
+                int offset = selectedChest.boundingBox.Height;
                 ChestLabel.Text.text = selectedLabelledChest.ChestName;
-                int posX = (selectedChest.boundingBox.X) - Game1.viewport.X;
+                int posX = (selectedChest.boundingBox.Center.X) - Game1.viewport.X;
                 int posY = (selectedChest.boundingBox.Y) - Game1.viewport.Y - offset;
-                ChestLabel.localX = posX + Game1.tileSize/2;
+                ChestLabel.localX = posX;
                 ChestLabel.localY = posY;
                 ChestLabel.Draw(Game1.spriteBatch, null);
             }
