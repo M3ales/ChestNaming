@@ -13,6 +13,10 @@ namespace ChestNaming
         {
             this.textBox.textLimit = maxInput;
             textBox.limitWidth = false;
+            int width = textBox.Width;
+            textBox.Width = width*4;
+            textBox.Text = defaultName ?? "";
+            textBox.Width = width;
         }
     }
 }
