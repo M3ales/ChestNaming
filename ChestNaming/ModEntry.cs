@@ -64,7 +64,7 @@ namespace ChestNaming
                     if (selectedLabelledChest != null || selectedChest != null)
                     {
                         string def = selectedLabelledChest == null ? "Chest" : selectedLabelledChest.ChestName;
-                        Game1.activeClickableMenu = new NamingMenu(ChangeNameExit, "Name Chest", def);
+                        Game1.activeClickableMenu = new ChestNamingMenu(ChangeNameExit, "Name Chest", def,32);
                     }
                 }
             }

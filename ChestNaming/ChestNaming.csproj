@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChestNamingMenu.cs" />
     <Compile Include="LabelledChest.cs" />
     <Compile Include="ModConfig.cs" />
     <Compile Include="ModEntry.cs" />
